@@ -1,14 +1,16 @@
 import turtle
 import time
 from random import randint
+from tkinter import messagebox
 
 delay = 0.1
 score = 0
 high_score = 0
 
+#Screen Setup
 win = turtle.Screen()
 win.title("Snake Game")
-win.bgcolor("blue")
+win.bgcolor("black")
 win.setup(width=600,height=600)
 win.tracer(0)
 
@@ -16,7 +18,7 @@ win.tracer(0)
 head = turtle.Turtle()
 head.speed(0)
 head.shape("square")
-head.color("black")
+head.color("white")
 head.penup()
 head.goto(0,100)
 head.direction = "stop"
@@ -33,14 +35,14 @@ food.shapesize(0.50,0.50)
 food.goto(0,0)
 
 #scoreboard
-update_score = turtle.Turtle()
-update_score.speed(0)
-update_score.color("white")
-update_score.penup()
-update_score.shape("square")
-update_score.hideturtle()
-update_score.goto(0,250)
-update_score.write(f"Score {score}  High Score: {high_score}",align = "center",font=("arial",24,"bold"))
+write_score = turtle.Turtle()
+write_score.speed(0)
+write_score.color("white")
+write_score.penup()
+write_score.shape("square")
+write_score.hideturtle()
+write_score.goto(0,250)
+write_score.write(f"Score {score}  High Score: {high_score}",align = "center",font=("arial",24,"bold"))
 
 def go_up():
   if head.direction != "down":
@@ -73,8 +75,24 @@ def move():
   if head.direction=="left":
     x = head.xcor()
     head.setx(x-20)
-
-
+    
+def update_score(score,high_score):
+  write_score.clear()
+  write_score.write(f"Score {score}  High Score: {high_score}",align = "center",font=("arial",24,"bold"))
+  
+def game_over():
+  
+  global score
+  global high_score
+  
+  for segment in segments:
+    segment.goto(1000,100)
+  segments.clear()
+  messagebox.showinfo("Game over.",f"Your Score was {score}")
+  score = 0
+  
+  update_score(score,high_score)
+  
 #action listeners
 win.listen()
 win.onkey(go_up,"w")
@@ -102,14 +120,7 @@ while True:
     y = randint(-290,290) 
     food.goto(x,y)
 
-    #hide segments
-    for segment in segments:
-      segment.goto(100000,100000)
-    #clear segments
-    segments.clear()
-    score = 0
-    update_score.clear()
-    update_score.write(f"Score: {score} High Score: {high_score}",align="center",font=("arial",24,"bold"))
+    game_over()
 
     
   #when snake touches food
@@ -118,10 +129,11 @@ while True:
     y = randint(-290,290)
     food.goto(x,y)
 
+    #Create new segment and increment score 
     new_segment = turtle.Turtle()
     new_segment.speed(0)
     new_segment.shape("square")
-    new_segment.color("white")
+    new_segment.color("green")
     new_segment.penup()
     segments.append(new_segment)
     delay -= 0.001
@@ -129,15 +141,16 @@ while True:
     
     if score > high_score:
       high_score = score
-      update_score.clear()
-      update_score.goto(0,250)
-      update_score.write(f"Score {score}  High Score: {high_score}",align = "center",font=("arial",24,"bold"))
-  
+      
+    update_score(score,high_score)
+
+  #add segments to the snake one by one from the end
   for i in range(len(segments)-1,0,-1):
     x = segments[i-1].xcor()
     y = segments[i-1].ycor()
     segments[i].goto(x,y)
 
+  #Place head at the front
   if len(segments) >= 1:
     x = head.xcor()
     y = head.ycor()
@@ -154,12 +167,7 @@ while True:
       head.direction = "stop"
       food.goto(0,0)
 
-      for segment in segments:
-        segment.goto(1000,1000)
-      segments.clear()
-      score = 0
-      update_score.clear()
-      update_score.write(f"Score: {score} High Score: {high_score}",align="center",font=("arial",24,"bold"))
+      game_over()
     
  
   time.sleep(delay)
